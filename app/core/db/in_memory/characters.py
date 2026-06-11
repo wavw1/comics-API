@@ -1,5 +1,5 @@
 from models import Db
-from fastapi import FastAPI, HTTPException
+from fastapi import HTTPException
 
 characters = Db(
     characters={

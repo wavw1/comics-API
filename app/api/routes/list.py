@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from core.db import all_characters, characters
+from core.db.in_memory.characters import all_characters, characters
 
 router = APIRouter(prefix="/list", tags=["list"])
 

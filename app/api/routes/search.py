@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 import httpx
 
-from core.db import find_character
+from core.db.in_memory.characters import find_character
 
 router = APIRouter(prefix="/search", tags=["search"])
 
