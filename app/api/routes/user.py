@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from models import UserCreate
+from app.models import UserCreate
 import json
 
-from crud import create_user, get_user_by_id, get_user_by_username
+from app.crud import create_user, get_user_by_id, get_user_by_username
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -18,7 +18,7 @@ def create(user_in: UserCreate):
     try:
         create_user(json.loads(user_in.model_dump_json()))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f'failed to create user: {e}')
+        raise HTTPException(status_code=500, detail=f'failed to create user: {e}')
 
     return {"message": "user has been created"}
 

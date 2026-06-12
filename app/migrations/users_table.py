@@ -1,5 +1,5 @@
 from sqlalchemy import Table, Column, Integer, String, ARRAY, TEXT
-from models import metadata_obj
+from app.models import metadata_obj
 
 users_table = Table(
     "users",

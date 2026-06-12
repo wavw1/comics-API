@@ -1,6 +1,6 @@
-from core.db.sql_alchemy.sql_alchemy import Session
+from app.core.db.sql_alchemy.sql_alchemy import Session
 from sqlalchemy import text, select
-from models import UserCreate, User
+from app.models import UserCreate, User
 
 def create_user(user_create: UserCreate):
     stmt = text("INSERT INTO users (username) VALUES (:username)")
