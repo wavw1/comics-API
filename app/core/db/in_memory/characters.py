@@ -1,4 +1,4 @@
-from models import Db
+from app.models import Db
 from fastapi import HTTPException
 
 characters = Db(
