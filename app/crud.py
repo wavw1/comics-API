@@ -1,54 +1,56 @@
-from app.core.db.sql_alchemy.sql_alchemy import Session
+from app.core.db.db import async_session
 from sqlalchemy import text, select
-from app.models import UserCreate, User
+from app.models import UserCreate, User, UserUpdate, UserRead
+from sqlalchemy.ext.asyncio import AsyncSession
 
-def create_user(user_create: UserCreate):
-    stmt = text("INSERT INTO users (username) VALUES (:username)")
+async def create_user(session: AsyncSession, user_in: UserCreate):
+    user = User(username=user_in.username)
+
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    return user
+
+async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
+    statement = select(User).where(User.id == user_id)
+    result = await session.scalars(statement)
+    user = result.first()
+    return user
+
+async def get_user_by_username(session: AsyncSession, username: str) -> User | None:
+    statement = select(User).where(User.username == username)
+    result = await session.scalars(statement)
+    user = result.first()
+    return user
+
+async def delete_user_by_id(session: AsyncSession, user_id: int) -> None:
+    statement = select(User).where(User.id == user_id)
+    await session.delete(statement)
+
+
+async def update_user_by_id(user_id: int, updated_user: UserUpdate) -> User | None:
+    stmt = text("""
+                UPDATE users 
+                SET username=:username 
+                WHERE id=:id
+                RETURNING id, username
+                """)
+
+    if updated_user.username == None or updated_user.username == "":
+        updated_user.username = f"user_{user_id}"
 
     try:
-        with Session.begin() as session:
-            session.execute(
+        async with async_session.begin() as session:
+            result = await session.execute(
                 stmt,
-                [user_create],
-        )
-            session.commit()
-    except Exception:
-        raise
+                [{"username": updated_user.username, "id": user_id}]
+            )
 
-def get_user_by_id(user_id: int) -> User | None:
-    stmt = text("SELECT id, username FROM users WHERE id=:id")
-    
-    try:
-        with Session.begin() as session:
-            result = session.execute(
-                stmt,
-                [{"id": user_id}],
-        )
-            
             for row in result:
-                user = {
-                    "id": row.id,
-                    "username": row.username,
-                }
-                return user
-    except Exception:
-        raise
-
-def get_user_by_username(username: str) -> User | None:
-    stmt = text("SELECT id, username FROM users WHERE username=:username")
-    
-    try:
-        with Session.begin() as session:
-            result = session.execute(
-                stmt,
-                [{"username": username}],
-        )
-            
-            for row in result:
-                user = User(
+                return User(
                     id=row.id,
-                    username=row.username,
-                )
-                return user
+                    username=row.username
+                    )
     except Exception:
         raise
