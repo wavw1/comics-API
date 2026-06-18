@@ -1,7 +1,7 @@
-from app.core.db.db import async_session
-from sqlalchemy import text, select, update, delete
-from app.models import UserCreate, User, UserUpdate, UserRead
+from sqlalchemy import select, update, delete
+from app.models import UserCreate, User, UserUpdate
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.models import Characters_Glossary
 
 async def create_user(session: AsyncSession, user_in: UserCreate):
     user = User(username=user_in.username)
@@ -14,14 +14,18 @@ async def create_user(session: AsyncSession, user_in: UserCreate):
 
 async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
     statement = select(User).where(User.id == user_id)
+    
     result = await session.scalars(statement)
     user = result.first()
+    
     return user
 
 async def get_user_by_username(session: AsyncSession, username: str) -> User | None:
     statement = select(User).where(User.username == username)
+    
     result = await session.scalars(statement)
     user = result.first()
+    
     return user
 
 async def delete_user_by_id(session: AsyncSession, user_id: int) -> None:
@@ -38,4 +42,19 @@ async def update_user_by_id(session: AsyncSession, user_id: int, updated_user: U
     result = await session.scalars(statement)
     await session.commit()
     user = result.first()
+    
     return user
+
+async def search_character(
+        session: AsyncSession, 
+        name: str,
+        ):
+    name = name.title()
+    
+    statement = select(Characters_Glossary).where(Characters_Glossary.name == name)
+    
+    result = await session.scalars(statement)
+    await session.commit()
+    character = result.first()
+    
+    return character

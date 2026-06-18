@@ -1,11 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.models import UserCreate, UserUpdate
+from app.models import UserCreate, UserUpdate, UserRead
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db.db import get_db
-import json
-from app.models import User, UserRead
 
-from app.crud import create_user, get_user_by_id, get_user_by_username, delete_user_by_id, update_user_by_id
+from app.crud import create_user, get_user_by_id, delete_user_by_id, update_user_by_id
 
 router = APIRouter(prefix="/user", tags=["user"])
 
