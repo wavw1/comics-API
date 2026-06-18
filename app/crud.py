@@ -1,5 +1,5 @@
 from app.core.db.db import async_session
-from sqlalchemy import text, select
+from sqlalchemy import text, select, update, delete
 from app.models import UserCreate, User, UserUpdate, UserRead
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,32 +25,17 @@ async def get_user_by_username(session: AsyncSession, username: str) -> User | N
     return user
 
 async def delete_user_by_id(session: AsyncSession, user_id: int) -> None:
-    statement = select(User).where(User.id == user_id)
-    await session.delete(statement)
+    statement = delete(User).where(User.id == user_id)
+    await session.execute(statement)
+    await session.commit()
 
-
-async def update_user_by_id(user_id: int, updated_user: UserUpdate) -> User | None:
-    stmt = text("""
-                UPDATE users 
-                SET username=:username 
-                WHERE id=:id
-                RETURNING id, username
-                """)
-
+async def update_user_by_id(session: AsyncSession, user_id: int, updated_user: UserUpdate) -> User | None:
     if updated_user.username == None or updated_user.username == "":
         updated_user.username = f"user_{user_id}"
+    
+    statement = update(User).where(User.id == user_id).values(username=updated_user.username).returning(User)
 
-    try:
-        async with async_session.begin() as session:
-            result = await session.execute(
-                stmt,
-                [{"username": updated_user.username, "id": user_id}]
-            )
-
-            for row in result:
-                return User(
-                    id=row.id,
-                    username=row.username
-                    )
-    except Exception:
-        raise
+    result = await session.scalars(statement)
+    await session.commit()
+    user = result.first()
+    return user

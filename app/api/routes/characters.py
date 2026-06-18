@@ -1,11 +1,14 @@
 from fastapi import APIRouter
+import httpx
 
-from app.core.db.in_memory.characters import all_characters, characters
+router = APIRouter(prefix="/characters", tags=["characters"])
 
-router = APIRouter(prefix="/list", tags=["list"])
+@router.get("/search/{character_name}")
+def search(character_name: str, biography: bool = False):
+    if biography:
+        r = httpx.get(f'https://cdn.jsdelivr.net/gh/akabab/superhero-api@0.3.0/api/biography/{character_name}.json')
+        return {f"{character_name}'s biography": r.json()}
 
-@router.get("/")
-def list():
-    list = all_characters(characters)
-
-    return {"list of all characters": list}
+    r = httpx.get(f'https://cdn.jsdelivr.net/gh/akabab/superhero-api@0.3.0/api/id/{character_name}.json')
+    
+    return {"character": r.json()}

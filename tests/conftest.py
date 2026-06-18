@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from pytest_alembic.config import Config
 import sqlalchemy
 import pytest_asyncio
+import asyncio
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:123@localhost/test_postgres"
 
