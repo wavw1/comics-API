@@ -1,32 +1,23 @@
-from app.main import app
 from app.crud import create_user, get_user_by_username, get_user_by_id, update_user_by_id
 from app.models import UserCreate, UserUpdate
-from app.utils.utils import random_username
+from app.utils.utils import random_username, random_password, random_email
 import pytest
 
-@pytest.mark.asyncio(loop_scope="session")
-async def test_create_user(db_session, client) -> None:
+def random_user() -> UserCreate:
     username = random_username(1)
-    user_in = UserCreate(username=username)
-
-    r = await client.post(
-        "/user/",
-        json=user_in.model_dump()
-    )
-
-    user_in_db = await get_user_by_username(
-         session=db_session, 
-         username=user_in.username,
-         )
-
-    assert r.status_code == 201
-    assert user_in_db is not None
-    assert user_in.username == user_in_db.username
+    email = random_email()
+    password = random_password()
+    user_in = UserCreate(
+        email=email,
+        username=username,
+        password=password,
+        )
+    
+    return user_in
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_non_existing_user(db_session, client) -> None:
-    username=random_username(1)
-    user_in = UserCreate(username=username)
+    user_in = random_user()
     await create_user(session=db_session, user_in=user_in)
 
     user = await get_user_by_username(
@@ -44,7 +35,7 @@ async def test_get_non_existing_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_existing_user(db_session, client) -> None:
-    user_in = UserCreate(username=random_username(1))
+    user_in = random_user()
     user = await create_user(
         session=db_session, 
         user_in=user_in,
@@ -68,9 +59,7 @@ async def test_get_existing_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_update_user(db_session, client) -> None:
-    username = random_username(1)
-    user_in = UserCreate(username=username)
-    
+    user_in = random_user()
     user = await create_user(
         session=db_session,
         user_in=user_in,
@@ -95,8 +84,7 @@ async def test_update_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_delete_user(db_session, client) -> None:
-    username = random_username(1)
-    user_in = UserCreate(username=username)
+    user_in = random_user()
     user = await create_user(
         session=db_session,
         user_in=user_in,
@@ -116,8 +104,7 @@ async def test_delete_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_delete_non_existing_user(db_session, client) -> None:
-    username = random_username(1)
-    user_in = UserCreate(username=username)
+    user_in = random_user()
     user = await create_user(
         session=db_session,
         user_in=user_in,

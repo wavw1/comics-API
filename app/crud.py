@@ -2,9 +2,14 @@ from sqlalchemy import select, update, delete
 from app.models import UserCreate, User, UserUpdate
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Characters_Glossary
+from app.core.security import get_password_hash
 
 async def create_user(session: AsyncSession, user_in: UserCreate):
-    user = User(username=user_in.username)
+    user = User(
+        email=user_in.email,
+        username=user_in.username,
+        password_hash=get_password_hash(user_in.password)
+        )
 
     session.add(user)
     await session.commit()

@@ -1,20 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.models import UserCreate, UserUpdate, UserRead
+from app.models import UserUpdate, UserRead
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db.db import get_db
 
-from app.crud import create_user, get_user_by_id, delete_user_by_id, update_user_by_id
+from app.crud import get_user_by_id, delete_user_by_id, update_user_by_id
 
 router = APIRouter(prefix="/user", tags=["user"])
 
-@router.post("/", status_code=201, response_model=UserRead)
-async def create(
-    user_in: UserCreate,
-    session: AsyncSession = Depends(get_db)
-    ):
-    return await create_user(session=session, user_in=user_in)
-
-@router.get("/{user_id}")
+@router.get("/{user_id}", response_model=UserRead)
 async def get(user_id: int,
     session: AsyncSession = Depends(get_db)
     ):
@@ -53,7 +46,7 @@ async def delete(
 
     return 
 
-@router.patch("/{user_id}")
+@router.patch("/{user_id}", response_model=UserRead)
 async def patch(
     user_id: int, 
     updated_user: UserUpdate,

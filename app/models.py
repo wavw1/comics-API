@@ -13,6 +13,8 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50))
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(TEXT, nullable=False)
 
 class Characters_Glossary(Base):
     __tablename__ = 'characters_glossary'
@@ -23,10 +25,13 @@ class Characters_Glossary(Base):
 
 class UserCreate(BaseModel):
     username: str
+    email: str
+    password: str
 
 class UserRead(BaseModel):
     id: int
     username: str
+    email: str
 
     model_config = {"from_attributes": True} 
 
