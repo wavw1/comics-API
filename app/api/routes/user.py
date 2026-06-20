@@ -1,15 +1,18 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.models import UserUpdate, UserRead
+from app.models import UserUpdate, UserRead, User
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db.db import get_db
+from app.api.deps import get_current_user
 
 from app.crud import get_user_by_id, delete_user_by_id, update_user_by_id
 
 router = APIRouter(prefix="/user", tags=["user"])
 
 @router.get("/{user_id}", response_model=UserRead)
-async def get(user_id: int,
-    session: AsyncSession = Depends(get_db)
+async def get(
+    user_id: int,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     ):
     try:
         user = await get_user_by_id(
@@ -27,7 +30,8 @@ async def get(user_id: int,
 @router.delete("/{user_id}", status_code=204)
 async def delete(
     user_id: int,
-    session: AsyncSession = Depends(get_db)
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     ):
     try:
         user = await get_user_by_id(session=session, user_id=user_id)
@@ -50,7 +54,8 @@ async def delete(
 async def patch(
     user_id: int, 
     updated_user: UserUpdate,
-    session: AsyncSession = Depends(get_db)
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     ):
     try:
         user = await get_user_by_id(

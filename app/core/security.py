@@ -5,6 +5,7 @@ import jwt
 from pwdlib import PasswordHash
 from pwdlib.hashers.argon2 import Argon2Hasher
 from pwdlib.hashers.bcrypt import BcryptHasher
+from jwt import PyJWTError
 
 password_hash = PasswordHash(
     (
@@ -19,9 +20,22 @@ ALGORITHM = "HS256"
 def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, "Drmhze6EPcv0fN_81Bj-nA", algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(payload=to_encode, key="secret", algorithm=ALGORITHM)
     return encoded_jwt
 
+def decode_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(jwt=token, key="secret", algorithms=[ALGORITHM])
+        return payload
+    except PyJWTError:
+        return None
+    
+def create_refresh_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(days=1)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(payload=to_encode, key="secret", algorithm=ALGORITHM)
+    return encoded_jwt
 
 def verify_password(
     plain_password: str, hashed_password: str

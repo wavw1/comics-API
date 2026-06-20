@@ -28,6 +28,15 @@ class UserCreate(BaseModel):
     email: str
     password: str
 
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class AuthorizedUser(BaseModel):
+    id: int
+    email: str
+    username: str
+
 class UserRead(BaseModel):
     id: int
     username: str
@@ -37,3 +46,11 @@ class UserRead(BaseModel):
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
+
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+class TokenData(BaseModel):
+    user_id: int
