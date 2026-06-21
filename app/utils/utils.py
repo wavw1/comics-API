@@ -2,6 +2,19 @@ from random_username.generate import generate_username
 import secrets
 import string
 import random
+from app.models import UserCreate
+
+def random_user() -> UserCreate:
+    username = random_username(1)
+    email = random_email()
+    password = random_password()
+    user_in = UserCreate(
+        email=email,
+        username=username,
+        password=password,
+        )
+    
+    return user_in
 
 def random_username(quantity_usernames: int) -> str:
     usernames = generate_username(quantity_usernames)

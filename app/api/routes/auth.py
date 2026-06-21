@@ -49,7 +49,7 @@ async def login(
     )
         
     access_token = create_access_token(
-        subject=repo_user,
+        subject=repo_user.id,
         expires_delta=timedelta(minutes=30)
         )
     refresh_token = create_refresh_token(data={"sub": str(repo_user.id)})
