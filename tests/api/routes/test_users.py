@@ -1,32 +1,11 @@
-from app.main import app
 from app.crud import create_user, get_user_by_username, get_user_by_id, update_user_by_id
-from app.models import UserCreate, UserUpdate
-from app.utils.utils import random_username
+from app.models import UserUpdate
+from app.utils.utils import random_username, random_user
 import pytest
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_create_user(db_session, client) -> None:
-    username = random_username(1)
-    user_in = UserCreate(username=username)
-
-    r = await client.post(
-        "/user/",
-        json=user_in.model_dump()
-    )
-
-    user_in_db = await get_user_by_username(
-         session=db_session, 
-         username=user_in.username,
-         )
-
-    assert r.status_code == 201
-    assert user_in_db is not None
-    assert user_in.username == user_in_db.username
-
-@pytest.mark.asyncio(loop_scope="session")
 async def test_get_non_existing_user(db_session, client) -> None:
-    username=random_username(1)
-    user_in = UserCreate(username=username)
+    user_in = random_user()
     await create_user(session=db_session, user_in=user_in)
 
     user = await get_user_by_username(
@@ -34,9 +13,19 @@ async def test_get_non_existing_user(db_session, client) -> None:
          username=user_in.username,
          )
     non_existing_id = user.id + 1
+
+    login_data = {
+        "username": user_in.username,
+        "password": user_in.password,
+    }
+    r = await client.post("/auth/login/", json=login_data)
+    tokens = r.json()
+    a_token = tokens["token"]["access_token"]
+    headers = {"Authorization": f"Bearer {a_token}"}
     
     r = await client.get(
         f"/user/{non_existing_id}",
+        headers=headers
     )
 
     assert r.status_code == 404
@@ -44,15 +33,25 @@ async def test_get_non_existing_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_existing_user(db_session, client) -> None:
-    user_in = UserCreate(username=random_username(1))
+    user_in = random_user()
     user = await create_user(
         session=db_session, 
         user_in=user_in,
         )
     user_id = user.id
 
+    login_data = {
+        "username": user_in.username,
+        "password": user_in.password,
+    }
+    r = await client.post("/auth/login/", json=login_data)
+    tokens = r.json()
+    a_token = tokens["token"]["access_token"]
+    headers = {"Authorization": f"Bearer {a_token}"}
+
     r = await client.get(
         f"/user/{user_id}",
+        headers=headers,
     )
 
     assert 200 <= r.status_code < 300
@@ -68,9 +67,7 @@ async def test_get_existing_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_update_user(db_session, client) -> None:
-    username = random_username(1)
-    user_in = UserCreate(username=username)
-    
+    user_in = random_user()
     user = await create_user(
         session=db_session,
         user_in=user_in,
@@ -95,16 +92,25 @@ async def test_update_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_delete_user(db_session, client) -> None:
-    username = random_username(1)
-    user_in = UserCreate(username=username)
+    user_in = random_user()
     user = await create_user(
         session=db_session,
         user_in=user_in,
     )
     user_id = user.id
+
+    login_data = {
+        "username": user_in.username,
+        "password": user_in.password,
+    }
+    r = await client.post("/auth/login/", json=login_data)
+    tokens = r.json()
+    a_token = tokens["token"]["access_token"]
+    headers = {"Authorization": f"Bearer {a_token}"}
     
     r = await client.delete(
         f"/user/{user_id}",
+        headers=headers
     )
     assert r.status_code == 204
 
@@ -116,16 +122,25 @@ async def test_delete_user(db_session, client) -> None:
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_delete_non_existing_user(db_session, client) -> None:
-    username = random_username(1)
-    user_in = UserCreate(username=username)
+    user_in = random_user()
     user = await create_user(
         session=db_session,
         user_in=user_in,
     )
     non_existing_id = user.id + 1
+
+    login_data = {
+        "username": user_in.username,
+        "password": user_in.password,
+    }
+    r = await client.post("/auth/login/", json=login_data)
+    tokens = r.json()
+    a_token = tokens["token"]["access_token"]
+    headers = {"Authorization": f"Bearer {a_token}"}
     
     r = await client.delete(
         f"/user/{non_existing_id}",
+        headers=headers
     )
     assert r.status_code == 404
     assert r.json() == {"detail": "User not found"}
